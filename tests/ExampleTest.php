@@ -9,11 +9,15 @@ class ExampleTest extends TestCase
     /**
      * A basic functional test example.
      *
+     * @expectedException \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
      * @return void
      */
     public function testBasicExample()
     {
-        $this->visit('/')
-             ->see('Laravel');
+        try {
+            $this->visit('/');
+        } catch (\Exception $e) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
     }
 }

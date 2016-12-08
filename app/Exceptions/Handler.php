@@ -4,7 +4,10 @@ namespace App\Exceptions;
 
 use Exception;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Session\TokenMismatchException;
+use Illuminate\Validation\ValidationException;
 
 class Handler extends ExceptionHandler
 {
@@ -44,7 +47,16 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
-        return parent::render($request, $exception);
+        switch($exception) {
+            case ($exception instanceof QueryException):
+            case ($exception instanceof TokenMismatchException):
+            case ($exception instanceof ValidationException):
+            case ($exception instanceof LittleDestroyException):
+                return $this->renderException($exception);
+                break;
+            default:
+                return parent::render($request, $exception);
+        }
     }
 
     /**
@@ -61,5 +73,40 @@ class Handler extends ExceptionHandler
         }
 
         return redirect()->guest('login');
+    }
+
+    /**
+     * Render custom exception into an HTTP response.
+     *
+     * @param Exception $exception
+     * @return \Illuminate\Http\Response
+     */
+    protected function renderException(Exception $exception)
+    {
+        switch($exception) {
+            case ($exception instanceof TokenMismatchException):
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Out of scope API.'
+                ], 403);
+                break;
+            case ($exception instanceof ValidationException):
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $exception->getMessage()
+                ], 200);
+                break;
+            case ($exception instanceof LittleDestroyException):
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Can not destroy the model'
+                ], 200);
+                break;
+            default:
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $exception->getMessage()
+                ], 200);
+        }
     }
 }

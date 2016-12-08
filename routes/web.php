@@ -11,6 +11,16 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+Route::group(['prefix' => 'api/v1'], function() {
+    Route::resource('author', 'AuthorController', [
+        'except'        => ['create', 'edit'],
+        'parameters'    => ['author' => 'author_id'],
+        'names'         => ['show' => 'profile'],
+    ]);
+    Route::get('book/{author_name?}', 'BookController@index');
+    Route::resource('book', 'BookController', [
+        'except'        => ['create', 'edit', 'index'],
+        'parameters'    => ['book' => 'book_id'],
+        'names'         => ['show' => 'profile'],
+    ]);
 });
